@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOF Solver - CSC431</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #3498db; --bg: #f4f6f7; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; color: var(--primary); }
+        .header-info { text-align: center; margin-bottom: 20px; font-size: 0.9em; color: #666; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .full-width { grid-column: span 2; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { grid-column: span 2; background-color: var(--secondary); color: white; padding: 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1em; transition: background 0.3s; }
+        button:hover { background-color: #2980b9; }
+
+        .results { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: var(--primary); color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .error { color: red; font-weight: bold; text-align: center; padding: 10px; background: #fee; border-radius: 5px; }
+        .success { color: green; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        
+        .hidden { display: none; }
+    </style>
+    <script>
+        function updateForm() {
+            const method = document.getElementById('method').value;
+            const fields = ['field-a', 'field-b', 'field-x0', 'field-x1', 'field-delta'];
+            
+            // Hide all first
+            fields.forEach(id => document.getElementById(id).classList.add('hidden'));
+            
+            // Logic to show based on method
+            if (method === '1' || method === '2') { // Bisection & Regula Falsi
+                document.getElementById('field-a').classList.remove('hidden');
+                document.getElementById('field-b').classList.remove('hidden');
+            } else if (method === '3') { // Secant
+                document.getElementById('field-x0').classList.remove('hidden');
+                document.getElementById('field-x1').classList.remove('hidden');
+            } else if (method === '4' || method === '5') { // Newton & Fixed Point
+                document.getElementById('field-x0').classList.remove('hidden');
+            } else if (method === '6') { // Modified Secant
+                document.getElementById('field-x0').classList.remove('hidden');
+                document.getElementById('field-delta').classList.remove('hidden');
+            }
+        }
+        window.onload = updateForm;
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Zero of Functions (ZOF) Solver</h1>
+    <div class="header-info">
+        CSC 431 Project | Covenant University<br>
+        Computational Science and Numerical Methods
+    </div>
+
+    <form method="POST" action="/">
+        <div class="form-grid">
+            <div class="full-width">
+                <label>Select Method:</label>
+                <select name="method" id="method" onchange="updateForm()">
+                    <option value="1" {% if params.method == '1' %}selected{% endif %}>Bisection Method</option>
+                    <option value="2" {% if params.method == '2' %}selected{% endif %}>Regula Falsi Method</option>
+                    <option value="3" {% if params.method == '3' %}selected{% endif %}>Secant Method</option>
+                    <option value="4" {% if params.method == '4' %}selected{% endif %}>Newton-Raphson Method</option>
+                    <option value="5" {% if params.method == '5' %}selected{% endif %}>Fixed Point Iteration</option>
+                    <option value="6" {% if params.method == '6' %}selected{% endif %}>Modified Secant Method</option>
+                </select>
+            </div>
+
+            <div class="full-width">
+                <label>Function Equation (use 'x'): <small>e.g., x**3 - x - 1 or exp(-x)-x</small></label>
+                <input type="text" name="function" value="{{ params.function or 'x**3 - x - 1' }}" required>
+            </div>
+
+            <!-- Dynamic Fields -->
+            <div id="field-a">
+                <label>Lower Bound (a):</label>
+                <input type="number" step="any" name="param_a" value="{{ params.param_a }}">
+            </div>
+            <div id="field-b">
+                <label>Upper Bound (b):</label>
+                <input type="number" step="any" name="param_b" value="{{ params.param_b }}">
+            </div>
+            <div id="field-x0" class="hidden">
+                <label>Initial Guess (x0):</label>
+                <input type="number" step="any" name="param_x0" value="{{ params.param_x0 }}">
+            </div>
+            <div id="field-x1" class="hidden">
+                <label>Second Guess (x1):</label>
+                <input type="number" step="any" name="param_x1" value="{{ params.param_x1 }}">
+            </div>
+            <div id="field-delta" class="hidden">
+                <label>Perturbation Delta (δ):</label>
+                <input type="number" step="any" name="param_delta" value="{{ params.param_delta or '0.01' }}">
+            </div>
+
+            <!-- Common Params -->
+            <div>
+                <label>Tolerance:</label>
+                <input type="text" name="tolerance" value="{{ params.tolerance or '0.0001' }}">
+            </div>
+            <div>
+                <label>Max Iterations:</label>
+                <input type="number" name="max_iter" value="{{ params.max_iter or '50' }}">
+            </div>
+
+            <button type="submit">Calculate Root</button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="results">
+        {% if result.error %}
+            <div class="error">Error: {{ result.error }}</div>
+        {% else %}
+            <div class="success">
+                Root Found: {{ result.root }}<br>
+                Iterations: {{ result.iters }}
+            </div>
+            
+            <h3>Iteration History</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for key in result.history[0].keys() %}
+                                <th>{{ key|upper }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in result.history %}
+                        <tr>
+                            {% for value in row.values() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
