@@ -1,5 +1,6 @@
-Akande Ibukunoluwapo Sijibomi
+Name: Akande Ibukunoluwapo Sijibomi
 Matric Number: 22CG031822
-https://zof-project-q2n4.onrender.com/
-https://github.com/iakande2201569-jpg/ZOF_Akande
+Live URL link: https://zof-project-q2n4.onrender.com/
+Repository Link: https://github.com/iakande2201569-jpg/ZOF_Akande
+
 
